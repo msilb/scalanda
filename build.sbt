@@ -10,7 +10,7 @@ startYear := Some(2015)
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
