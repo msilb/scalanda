@@ -8,9 +8,9 @@ import com.msilb.scalanda.common.Environment
 import com.msilb.scalanda.common.Environment.SandBox
 import com.msilb.scalanda.common.util.DateUtils._
 import com.msilb.scalanda.common.util.NumberUtils._
-import com.msilb.scalanda.restapi.OandaConnector.Request._
-import com.msilb.scalanda.restapi.OandaConnector.Response
-import com.msilb.scalanda.restapi.OandaConnector.Response._
+import com.msilb.scalanda.restapi.Connector.Request._
+import com.msilb.scalanda.restapi.Connector.Response
+import com.msilb.scalanda.restapi.Connector.Response._
 import spray.client.pipelining._
 import spray.http.{FormData, OAuth2BearerToken}
 import spray.httpx.SprayJsonSupport._
@@ -21,9 +21,9 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-object OandaConnector {
+object Connector {
 
-  def props(env: Environment = SandBox, authToken: Option[String] = None, accountId: Int = 1234567) = Props(new OandaConnector(env, authToken, accountId))
+  def props(env: Environment = SandBox, authToken: Option[String] = None, accountId: Int = 1234567) = Props(new Connector(env, authToken, accountId))
 
   sealed trait Request
 
@@ -106,9 +106,9 @@ object OandaConnector {
 
 }
 
-class OandaConnector(env: Environment, authTokenOpt: Option[String], accountId: Int) extends Actor with ActorLogging {
+class Connector(env: Environment, authTokenOpt: Option[String], accountId: Int) extends Actor with ActorLogging {
 
-  import com.msilb.scalanda.restapi.OandaConnector.Response.OandaJsonProtocol._
+  import com.msilb.scalanda.restapi.Connector.Response.OandaJsonProtocol._
   import context.dispatcher
 
   implicit val timeout = Timeout(5.seconds)
