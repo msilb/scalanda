@@ -1,2 +1,2 @@
 # scalanda
-Scala/Akka wrapper around Oanda REST and Stream API
+Scala/Akka wrapper for Oanda REST and Stream API
