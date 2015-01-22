@@ -4,10 +4,11 @@ import java.time.ZonedDateTime
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.io.IO
+import akka.util.Timeout
 import com.msilb.scalanda.common.Environment
 import com.msilb.scalanda.common.Environment.SandBox
-import com.msilb.scalanda.streamapi.EventListener.Response.AccountEvent
 import com.msilb.scalanda.common.util.DateUtils._
+import com.msilb.scalanda.streamapi.AccountEventListener.Response.AccountEvent
 import spray.can.Http
 import spray.can.Http.HostConnectorInfo
 import spray.http._
@@ -16,9 +17,11 @@ import spray.httpx.SprayJsonSupport._
 import spray.httpx.unmarshalling._
 import spray.json._
 
-object EventListener {
+import scala.concurrent.duration._
 
-  def props(env: Environment, authToken: Option[String], listeners: Map[Int, Seq[ActorRef]]) = Props(new EventListener(env, authToken, listeners))
+object AccountEventListener {
+
+  def props(env: Environment = SandBox, authToken: Option[String] = None, listeners: Map[Int, Seq[ActorRef]]) = Props(new AccountEventListener(env, authToken, listeners))
 
   sealed trait Response
 
@@ -64,12 +67,14 @@ object EventListener {
 
 }
 
-class EventListener(env: Environment = SandBox, authTokenOpt: Option[String] = None, listeners: Map[Int, Seq[ActorRef]]) extends Actor with ActorLogging {
+class AccountEventListener(env: Environment = SandBox, authTokenOpt: Option[String] = None, listeners: Map[Int, Seq[ActorRef]]) extends Actor with ActorLogging {
 
-  import com.msilb.scalanda.streamapi.EventListener.Response.EventJsonProtocol._
-  import context.system
+  import com.msilb.scalanda.streamapi.AccountEventListener.Response.EventJsonProtocol._
+  import context._
 
-  override def preStart() = IO(Http) ! Http.HostConnectorSetup(
+  implicit val timeout = Timeout(5.seconds)
+
+  IO(Http) ! Http.HostConnectorSetup(
     host = env.streamApiUrl(),
     port = if (env.authenticationRequired()) 443 else 80,
     sslEncryption = env.authenticationRequired(),
@@ -78,7 +83,7 @@ class EventListener(env: Environment = SandBox, authTokenOpt: Option[String] = N
 
   def receive = {
     case HostConnectorInfo(hostConnector, _) =>
-      hostConnector ! Get("/v1/events")
+      hostConnector ! Get(s"/v1/events?accountIds=${listeners.keySet.mkString(",")}")
     case MessageChunk(data, _) =>
       data.asString.lines.foreach { line =>
         val entity = HttpEntity(ContentTypes.`application/json`, line)
