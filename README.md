@@ -38,7 +38,7 @@ restConnector ! CreateOrderRequest("EUR_USD", 10000, "buy", "market")
 
 Once the request is completed `restConnector` will reply with an instance of `CreateOrderResponse` containing details of the successfully created trade.
 
-For a full list of supported `Request`s and `Response`s please look at the source code file `RestConnector.scala`.
+For a full list of supported `Request`s and `Response`s please look at the source code file [`RestConnector.scala`](src/main/scala/com/msilb/scalanda/restapi/RestConnector.scala).
 
 ## Listening for Account Events Using the Stream API
 
@@ -53,4 +53,4 @@ where
 * `testAccountId`<sub>i</sub> are the IDs of the accounts you want to listen for updates.
 * `listenersForTestAccountId`<sub>i</sub> are sequences of `ActorRef`s that should be notified of updates on account `testAccountId`<sub>i</sub>.
 
-For a full list of supported `Transaction` events please look at the source code file `AccountEventListener.scala`.
+For a full list of supported `Transaction` events please look at the source code file [`AccountEventListener.scala`](src/main/scala/com/msilb/scalanda/streamapi/AccountEventListener.scala).
