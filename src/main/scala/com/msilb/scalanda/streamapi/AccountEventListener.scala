@@ -9,7 +9,6 @@ import com.msilb.scalanda.common.Environment
 import com.msilb.scalanda.common.Environment.SandBox
 import com.msilb.scalanda.common.util.DateUtils._
 import com.msilb.scalanda.streamapi.AccountEventListener.Response.AccountEvent
-import com.msilb.scalanda.streamapi.AccountEventListener.Response.EventJsonProtocol._
 import spray.can.Http
 import spray.can.Http.HostConnectorInfo
 import spray.http._
@@ -70,6 +69,7 @@ object AccountEventListener {
 
 class AccountEventListener(env: Environment = SandBox, authTokenOpt: Option[String] = None, listeners: Map[Int, Seq[ActorRef]]) extends Actor with ActorLogging {
 
+  import com.msilb.scalanda.streamapi.AccountEventListener.Response.EventJsonProtocol._
   import context._
 
   implicit val timeout = Timeout(5.seconds)
