@@ -12,6 +12,7 @@ import com.msilb.scalanda.common.util.DateUtils._
 import com.msilb.scalanda.common.util.NumberUtils._
 import com.msilb.scalanda.restapi.RestConnector.Request._
 import com.msilb.scalanda.restapi.RestConnector.Response
+import com.msilb.scalanda.restapi.RestConnector.Response.OandaJsonProtocol._
 import com.msilb.scalanda.restapi.RestConnector.Response._
 import spray.can.Http
 import spray.client.pipelining._
@@ -116,12 +117,11 @@ object RestConnector {
 
 class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: Int) extends Actor with ActorLogging {
 
-  import com.msilb.scalanda.restapi.RestConnector.Response.OandaJsonProtocol._
   import context._
 
   implicit val timeout = Timeout(5.seconds)
 
-  private def pipeline[T <: Response](implicit unmarshaller: FromResponseUnmarshaller[T]) =
+  private[this] def pipeline[T <: Response](implicit unmarshaller: FromResponseUnmarshaller[T]) =
     for {
       Http.HostConnectorInfo(connector, _) <-
       IO(Http) ? Http.HostConnectorSetup(
@@ -135,7 +135,7 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
       case None => sendReceive(connector) ~> unmarshal[T]
     }
 
-  private def handleRequest[T <: Response](f: Future[T]) = {
+  private[this] def handleRequest[T <: Response](f: Future[T]) = {
     val requester = sender()
     f onComplete {
       case Success(response) =>
