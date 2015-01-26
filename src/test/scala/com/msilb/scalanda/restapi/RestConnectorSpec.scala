@@ -40,7 +40,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     within(2.seconds) {
       restConnector ! ClosePositionRequest("EUR_USD")
       expectMsgPF() {
-        case ClosePositionResponse(_, "EUR_USD", 10000, _) => true
+        case ClosePositionResponse(_, "EUR_USD", _, _) => true
       }
     }
   }

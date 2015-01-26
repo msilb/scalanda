@@ -1,4 +1,10 @@
+import SonatypeKeys._
+
+sonatypeSettings
+
 organization := "com.msilb"
+
+profileName := "com.msilb"
 
 organizationHomepage := Some(new URL("http://msilb.com"))
 
@@ -8,7 +14,7 @@ description := "Scala/Akka wrapper around Oanda REST and Stream API"
 
 startYear := Some(2015)
 
-version := "0.1.0-SNAPSHOT"
+version := "0.2.0"
 
 scalaVersion := "2.11.5"
 
