@@ -19,7 +19,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
   val restConnector = system.actorOf(RestConnector.props(accountId = 8164566))
 
   "RestConnector" should "fetch 1 min candles in EUR/USD" in {
-    within(2.seconds) {
+    within(5.seconds) {
       restConnector ! GetCandlesRequest("EUR_USD", 2, "M1", "bidask")
       expectMsgPF() {
         case CandleResponse("EUR_USD", "M1", list) if list.size == 2 => true
@@ -28,7 +28,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
   }
 
   it should "create new market order in EUR/USD" in {
-    within(2.seconds) {
+    within(5.seconds) {
       restConnector ! CreateOrderRequest("EUR_USD", 10000, "buy", "market")
       expectMsgPF() {
         case CreateOrderResponse("EUR_USD", _, _, None, Some(tradeOpened)) => true
@@ -37,7 +37,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
   }
 
   it should "close existing position in EUR/USD" in {
-    within(2.seconds) {
+    within(5.seconds) {
       restConnector ! ClosePositionRequest("EUR_USD")
       expectMsgPF() {
         case ClosePositionResponse(_, "EUR_USD", _, _) => true
