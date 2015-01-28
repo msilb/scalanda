@@ -1,5 +1,11 @@
 language: scala
 scala:
-  - 2.11.5
+- 2.11.5
 jdk:
-  - oraclejdk8
+- oraclejdk8
+env:
+  global:
+  - secure: Spc766S1zYN4d08DpG/Yux/jGdo83ndI588jrqdohNboq3SC4Pg9ZILMdddmiOCpiFKpj7z6Gy9XikaKve4t8+0PFgvrgCLfxuL628AqkTK0PoZxV3vPtEHvM6jgbBqlkCGZHlCwe61w7txoP+n/n7yRaWL00YSWDi03O+92BPs=
+  - secure: R3RHgBGl+/wZOQbAPCFtvBD68NclWz71ep1h4UqADOrWoHMOtZIs61Ssa2irKcjKLNS8qI3CQV90LewSPLrU8G+2iC2N8rNcWT/WltgQohKUXg6dR2640AWq/UKazYwDOl6iKcFbei6KB7d9ITzz5w4SYpJYODC9H9sNvoHPaoM=
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt publish; };"
