@@ -2,8 +2,8 @@ package com.msilb.scalanda.restapi
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import com.msilb.scalanda.restapi.RestConnector.Request.{ClosePositionRequest, CreateOrderRequest, GetCandlesRequest, GetInstrumentsRequest}
-import com.msilb.scalanda.restapi.RestConnector.Response.{GetInstrumentsResponse, CandleResponse, ClosePositionResponse, CreateOrderResponse}
+import com.msilb.scalanda.restapi.RestConnector.Request._
+import com.msilb.scalanda.restapi.RestConnector.Response._
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.duration._
@@ -41,7 +41,16 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "fetch 1 min candles in EUR/USD" in {
+  it should "fetch current prices for EUR/USD and USD/JPY" in {
+    within(5.seconds) {
+      restConnector ! GetCurrentPricesRequest(Seq("EUR_USD", "USD_JPY"))
+      expectMsgPF() {
+        case GetCurrentPricesResponse(prices) if prices.size == 2 && prices.exists(_.instrument == "EUR_USD") => true
+      }
+    }
+  }
+
+  it should "fetch historical 1-min candles for EUR/USD" in {
     within(5.seconds) {
       restConnector ! GetCandlesRequest("EUR_USD", 2, "M1", "bidask")
       expectMsgPF() {

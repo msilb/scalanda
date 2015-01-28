@@ -55,6 +55,8 @@ object RestConnector {
 
     case class GetInstrumentsRequest(fields: Option[Seq[String]] = None, instruments: Option[Seq[String]] = None) extends Request
 
+    case class GetCurrentPricesRequest(instruments: Seq[String], since: Option[ZonedDateTime] = None) extends Request
+
   }
 
   sealed trait Response
@@ -101,6 +103,14 @@ object RestConnector {
 
     case class GetInstrumentsResponse(instruments: Seq[Instrument]) extends Response
 
+    case class Price(instrument: String,
+                     time: ZonedDateTime,
+                     bid: Double,
+                     ask: Double,
+                     status: Option[String])
+
+    case class GetCurrentPricesResponse(prices: Seq[Price]) extends Response
+
     object OandaJsonProtocol extends DefaultJsonProtocol {
       implicit val cancelOrderResponseFormat = jsonFormat6(CancelOrderResponse)
       implicit val orderOpenedFormat = jsonFormat9(OrderOpened)
@@ -118,6 +128,8 @@ object RestConnector {
       implicit val modifyOrderResponseFmt = jsonFormat13(ModifyOrderResponse)
       implicit val instrumentFmt = jsonFormat9(Instrument)
       implicit val getInstrumentsResponseFmt = jsonFormat1(GetInstrumentsResponse)
+      implicit val priceFmt = jsonFormat5(Price)
+      implicit val getCurrentPricesResponseFmt = jsonFormat1(GetCurrentPricesResponse)
     }
 
   }
@@ -211,5 +223,15 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
         )
       )
       handleRequest(pipeline[GetInstrumentsResponse].flatMap(_(Get(uri))))
+    case req: GetCurrentPricesRequest =>
+      log.info("Getting current prices: {}", req)
+      val uri = Uri("/v1/prices").withQuery(
+        Query.asBodyData(
+          Seq(
+            ("instruments", req.instruments.mkString(","))
+          ) ++ req.since.map(since => Seq(("since", dateTimeFormatter.format(since)))).getOrElse(Nil)
+        )
+      )
+      handleRequest(pipeline[GetCurrentPricesResponse].flatMap(_(Get(uri))))
   }
 }
