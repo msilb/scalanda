@@ -15,7 +15,8 @@ import com.msilb.scalanda.restapi.RestConnector.Response
 import com.msilb.scalanda.restapi.RestConnector.Response._
 import spray.can.Http
 import spray.client.pipelining._
-import spray.http.{FormData, HttpHeaders, OAuth2BearerToken}
+import spray.http.Uri.Query
+import spray.http.{FormData, HttpHeaders, OAuth2BearerToken, Uri}
 import spray.httpx.SprayJsonSupport._
 import spray.httpx.unmarshalling._
 import spray.json.DefaultJsonProtocol
@@ -31,8 +32,6 @@ object RestConnector {
   sealed trait Request
 
   object Request {
-
-    case class ConnectRequest(environment: Environment = SandBox, authToken: Option[String] = None) extends Request
 
     case class CancelOrderRequest(orderId: Int) extends Request
 
@@ -54,13 +53,13 @@ object RestConnector {
 
     case object CreateTestAccountRequest extends Request
 
+    case class GetInstrumentsRequest(fields: Option[Seq[String]] = None, instruments: Option[Seq[String]] = None) extends Request
+
   }
 
   sealed trait Response
 
   object Response {
-
-    case class AuthenticationResponse()
 
     case class CancelOrderResponse(id: Int, instrument: String, units: Int, side: String, price: Double, time: ZonedDateTime) extends Response
 
@@ -78,19 +77,29 @@ object RestConnector {
 
     case class Trade(id: Int, units: Int, side: String, instrument: String, time: ZonedDateTime, price: Double, takeProfit: Double, stopLoss: Double, trailingStop: Double, trailingAmount: Double)
 
-    case class TradeResponse(trades: List[Trade]) extends Response
+    case class TradeResponse(trades: Seq[Trade]) extends Response
 
     case class Order(id: Int, instrument: String, units: Int, side: String, `type`: String, time: ZonedDateTime, price: Double, takeProfit: Double, stopLoss: Double, expiry: ZonedDateTime, upperBound: Double, lowerBound: Double, trailingStop: Double)
 
-    case class OrderResponse(orders: List[Order]) extends Response
+    case class OrderResponse(orders: Seq[Order]) extends Response
 
     case class Candle(time: ZonedDateTime, openBid: Double, openAsk: Double, highBid: Double, highAsk: Double, lowBid: Double, lowAsk: Double, closeBid: Double, closeAsk: Double, volume: Int, complete: Boolean)
 
-    case class CandleResponse(instrument: String, granularity: String, candles: List[Candle]) extends Response
+    case class CandleResponse(instrument: String, granularity: String, candles: Seq[Candle]) extends Response
 
-    case class ClosePositionResponse(ids: List[Int], instrument: String, totalUnits: Int, price: Double) extends Response
+    case class ClosePositionResponse(ids: Seq[Int], instrument: String, totalUnits: Int, price: Double) extends Response
 
-    case class CreateTestAccountResponse(username: String, password: String, accountId: Int) extends Response
+    case class Instrument(instrument: String,
+                          displayName: Option[String],
+                          pip: Option[String],
+                          precision: Option[String],
+                          maxTradeUnits: Option[Double],
+                          maxTrailingStop: Option[Double],
+                          minTrailingStop: Option[Double],
+                          marginRate: Option[Double],
+                          halted: Option[Boolean])
+
+    case class GetInstrumentsResponse(instruments: Seq[Instrument]) extends Response
 
     object OandaJsonProtocol extends DefaultJsonProtocol {
       implicit val cancelOrderResponseFormat = jsonFormat6(CancelOrderResponse)
@@ -107,7 +116,8 @@ object RestConnector {
       implicit val closePositionResponseFmt = jsonFormat4(ClosePositionResponse)
       implicit val closeTradeResponseFmt = jsonFormat6(CloseTradeResponse)
       implicit val modifyOrderResponseFmt = jsonFormat13(ModifyOrderResponse)
-      implicit val createTestAccountResponseFmt = jsonFormat3(CreateTestAccountResponse)
+      implicit val instrumentFmt = jsonFormat9(Instrument)
+      implicit val getInstrumentsResponseFmt = jsonFormat1(GetInstrumentsResponse)
     }
 
   }
@@ -190,8 +200,16 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
     case req: CloseTradeRequest =>
       log.info("Closing trade: {}", req)
       handleRequest(pipeline[CloseTradeResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/trades/${req.tradeId}"))))
-    case CreateTestAccountRequest =>
-      log.info("Creating test account")
-      handleRequest(pipeline[CreateTestAccountResponse].flatMap(_(Post(s"/v1/accounts"))))
+    case req: GetInstrumentsRequest =>
+      log.info("Getting instruments: {}", req)
+      val uri = Uri("/v1/instruments").withQuery(
+        Query.asBodyData(
+          Seq(
+            ("accountId", accountId.toString)
+          ) ++ req.fields.map(fields => Seq(("fields", fields.mkString(",")))).getOrElse(Nil)
+            ++ req.instruments.map(instruments => Seq(("instruments", instruments.mkString(",")))).getOrElse(Nil)
+        )
+      )
+      handleRequest(pipeline[GetInstrumentsResponse].flatMap(_(Get(uri))))
   }
 }

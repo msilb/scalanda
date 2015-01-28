@@ -2,8 +2,8 @@ package com.msilb.scalanda.restapi
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import com.msilb.scalanda.restapi.RestConnector.Request.{ClosePositionRequest, CreateOrderRequest, GetCandlesRequest}
-import com.msilb.scalanda.restapi.RestConnector.Response.{CandleResponse, ClosePositionResponse, CreateOrderResponse}
+import com.msilb.scalanda.restapi.RestConnector.Request.{ClosePositionRequest, CreateOrderRequest, GetCandlesRequest, GetInstrumentsRequest}
+import com.msilb.scalanda.restapi.RestConnector.Response.{GetInstrumentsResponse, CandleResponse, ClosePositionResponse, CreateOrderResponse}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.duration._
@@ -18,7 +18,30 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
 
   val restConnector = system.actorOf(RestConnector.props(accountId = 8164566))
 
-  "RestConnector" should "fetch 1 min candles in EUR/USD" in {
+  "RestConnector" should "get full list of tradable instruments containing EUR/USD" in {
+    within(5.seconds) {
+      restConnector ! GetInstrumentsRequest(
+        fields = Some(
+          Seq(
+            "instrument",
+            "displayName",
+            "pip",
+            "maxTradeUnits",
+            "precision",
+            "maxTrailingStop",
+            "minTrailingStop",
+            "marginRate",
+            "halted"
+          )
+        )
+      )
+      expectMsgPF() {
+        case GetInstrumentsResponse(instruments) if instruments.exists(i => i.instrument == "EUR_USD" && i.displayName.contains("EUR/USD") && i.halted.contains(false)) => true
+      }
+    }
+  }
+
+  it should "fetch 1 min candles in EUR/USD" in {
     within(5.seconds) {
       restConnector ! GetCandlesRequest("EUR_USD", 2, "M1", "bidask")
       expectMsgPF() {
