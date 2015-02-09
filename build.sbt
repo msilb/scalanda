@@ -10,7 +10,7 @@ organizationHomepage := Some(new URL("http://msilb.com"))
 
 name := "scalanda"
 
-description := "Scala/Akka wrapper around Oanda REST and Stream API"
+description := "Scala/Akka wrapper for Oanda REST and Stream APIs"
 
 startYear := Some(2015)
 
@@ -26,7 +26,7 @@ libraryDependencies ++= {
   val akkaV = "2.3.9"
   val sprayV = "1.3.2"
   val sprayJsonV = "1.3.1"
-  val scalaTestV = "2.2.1"
+  val scalaTestV = "2.2.4"
   Seq(
     "io.spray" %% "spray-json" % sprayJsonV,
     "io.spray" %% "spray-can" % sprayV,
