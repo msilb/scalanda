@@ -1,7 +1,14 @@
 package com.msilb.scalanda.restapi
 
+import java.time.ZonedDateTime
+
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import com.msilb.scalanda.common.model.CandleFormat.BidAsk
+import com.msilb.scalanda.common.model.Granularity.M1
+import com.msilb.scalanda.common.model.InstrumentField
+import com.msilb.scalanda.common.model.OrderType.{Limit, Market}
+import com.msilb.scalanda.common.model.Side.Buy
 import com.msilb.scalanda.restapi.RestConnector.Request._
 import com.msilb.scalanda.restapi.RestConnector.Response._
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
@@ -16,22 +23,26 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     TestKit.shutdownActorSystem(system)
   }
 
-  val restConnector = system.actorOf(RestConnector.props(accountId = 8164566))
+  val testAccountId = 4393633
+  val testUsername = "jachanie"
+  val testPassword = "OnMuItIl"
 
-  "RestConnector" should "get full list of tradable instruments containing EUR/USD" in {
+  val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
+
+  "RestConnector" should "get full list of tradable instruments" in {
     within(5.seconds) {
       restConnector ! GetInstrumentsRequest(
         fields = Some(
           Seq(
-            "instrument",
-            "displayName",
-            "pip",
-            "maxTradeUnits",
-            "precision",
-            "maxTrailingStop",
-            "minTrailingStop",
-            "marginRate",
-            "halted"
+            InstrumentField.Instrument,
+            InstrumentField.DisplayName,
+            InstrumentField.Pip,
+            InstrumentField.MaxTradeUnits,
+            InstrumentField.Precision,
+            InstrumentField.MaxTrailingStop,
+            InstrumentField.MinTrailingStop,
+            InstrumentField.MarginRate,
+            InstrumentField.Halted
           )
         )
       )
@@ -52,27 +63,85 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
 
   it should "fetch historical 1-min candles for EUR/USD" in {
     within(5.seconds) {
-      restConnector ! GetCandlesRequest("EUR_USD", 2, "M1", "bidask")
+      restConnector ! GetCandlesRequest(instrument = "EUR_USD", count = Some(2), granularity = Some(M1), candleFormat = Some(BidAsk))
       expectMsgPF() {
-        case CandleResponse("EUR_USD", "M1", list) if list.size == 2 => true
+        case CandleResponse("EUR_USD", M1, list) if list.size == 2 => true
       }
     }
   }
 
-  it should "create new market order in EUR/USD" in {
+  it should "get all accounts for a test user" in {
     within(5.seconds) {
-      restConnector ! CreateOrderRequest("EUR_USD", 10000, "buy", "market")
+      restConnector ! GetAccountsRequest(Some(testUsername))
+      expectMsgPF() {
+        case GetAccountsResponse(accounts) if accounts.size == 1 && accounts.headOption.exists(_.accountId == testAccountId) => true
+      }
+    }
+  }
+
+  it should "create test account" in {
+    within(5.seconds) {
+      restConnector ! CreateTestAccountRequest()
+      expectMsgPF() {
+        case CreateTestAccountResponse(username, password, accountId) => true
+      }
+    }
+  }
+
+  it should "get account information for a test account id" in {
+    within(5.seconds) {
+      restConnector ! GetAccountInformationRequest(testAccountId)
+      expectMsgPF() {
+        case GetAccountInformationResponse(accountId, accountName, balance, unrealizedPl, realizedPl, marginUsed, marginAvail, openTrades, openOrders, marginRate, accountCurrency) if accountId == testAccountId && accountCurrency == "USD" => true
+      }
+    }
+  }
+
+  it should "close any existing position and order(s)" in {
+    within(10.seconds) {
+      restConnector ! ClosePositionRequest("EUR_USD")
+      expectMsgType[ClosePositionResponse]
+      restConnector ! GetOrdersRequest(instrument = Some("EUR_USD"))
+      val orderIds = expectMsgPF() {
+        case GetOrdersResponse(orders) => orders.map(_.id)
+      }
+      orderIds.foreach { limitOrderId =>
+        restConnector ! CloseOrderRequest(limitOrderId)
+        expectMsgType[CloseOrderResponse]
+      }
+    }
+  }
+
+  it should "create new limit order, retrieve order information, modify and delete order" in {
+    within(10.seconds) {
+      restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Limit, Some(ZonedDateTime.now().plusDays(1)), Some(1.8))
+      val limitOrderId = expectMsgPF() {
+        case CreateOrderResponse(instrument, time, price, Some(orderOpened), tradeOpened) if instrument == "EUR_USD" => orderOpened.id
+      }
+      restConnector ! GetOrdersRequest(instrument = Some("EUR_USD"))
+      expectMsgPF() {
+        case GetOrdersResponse(Seq(OrderResponse(id, "EUR_USD", 10000, Buy, Limit, time, 1.8, 0.0, 0.0, expiry, 0.0, 0.0, 0.0))) if id == limitOrderId => true
+      }
+      restConnector ! GetOrderInformationRequest(limitOrderId)
+      expectMsgPF() {
+        case OrderResponse(id, "EUR_USD", 10000, Buy, Limit, time, 1.8, 0.0, 0.0, expiry, 0.0, 0.0, 0.0) if id == limitOrderId => true
+      }
+      restConnector ! ModifyOrderRequest(limitOrderId, units = Some(20000))
+      expectMsgPF() {
+        case OrderResponse(id, "EUR_USD", 20000, Buy, Limit, time, 1.8, 0.0, 0.0, expiry, 0.0, 0.0, 0.0) if id == limitOrderId => true
+      }
+      restConnector ! CloseOrderRequest(limitOrderId)
+      expectMsgPF() {
+        case CloseOrderResponse(id, "EUR_USD", 20000, Buy, 1.8, time) if id == limitOrderId => true
+      }
+    }
+  }
+
+  it should "create new market order" in {
+    within(5.seconds) {
+      restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
       expectMsgPF() {
         case CreateOrderResponse("EUR_USD", _, _, None, Some(tradeOpened)) => true
-      }
-    }
-  }
-
-  it should "close existing position in EUR/USD" in {
-    within(5.seconds) {
-      restConnector ! ClosePositionRequest("EUR_USD")
-      expectMsgPF() {
-        case ClosePositionResponse(_, "EUR_USD", _, _) => true
       }
     }
   }

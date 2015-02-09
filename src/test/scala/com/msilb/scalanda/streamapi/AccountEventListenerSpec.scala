@@ -2,6 +2,8 @@ package com.msilb.scalanda.streamapi
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import com.msilb.scalanda.common.model.OrderType.Market
+import com.msilb.scalanda.common.model.Side.Buy
 import com.msilb.scalanda.restapi.RestConnector
 import com.msilb.scalanda.restapi.RestConnector.Request.{ClosePositionRequest, CreateOrderRequest}
 import com.msilb.scalanda.restapi.RestConnector.Response.{ClosePositionResponse, CreateOrderResponse}
@@ -25,7 +27,7 @@ class AccountEventListenerSpec(_system: ActorSystem) extends TestKit(_system) wi
 
   "AccountEventListener" should "receive event when new market order is placed" in {
     within(10.seconds) {
-      restConnector ! CreateOrderRequest("EUR_USD", 10000, "buy", "market")
+      restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
       restConnector ! ClosePositionRequest("EUR_USD")
       expectMsgAnyClassOf(classOf[CreateOrderResponse], classOf[ClosePositionResponse], classOf[Transaction])
     }
