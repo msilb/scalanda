@@ -161,13 +161,4 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
       }
     }
   }
-
-  it should "create new market order" in {
-    within(5.seconds) {
-      restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
-      expectMsgPF() {
-        case CreateOrderResponse("EUR_USD", _, _, None, Some(tradeOpened)) => true
-      }
-    }
-  }
 }
