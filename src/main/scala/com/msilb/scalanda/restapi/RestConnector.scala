@@ -33,17 +33,9 @@ object RestConnector {
 
   def props(env: Environment = SandBox, authToken: Option[String] = None, accountId: Int) = Props(new RestConnector(env, authToken, accountId))
 
-  trait Request
+  sealed trait Request
 
   object Request {
-
-
-    case class CloseTradeRequest(tradeId: Int) extends Request
-
-    case class ModifyTradeRequest(id: Int, stopLoss: Option[Double] = None, takeProfit: Option[Double] = None, trailingStop: Option[Double] = None) extends Request
-
-
-    case class GetTradesRequest(instrument: String, count: Int) extends Request
 
 
     case class ClosePositionRequest(instrument: String) extends Request
@@ -105,23 +97,27 @@ object RestConnector {
                                   stopLoss: Option[Double] = None,
                                   takeProfit: Option[Double] = None,
                                   trailingStop: Option[Double] = None) extends Request
-    
+
     case class CloseOrderRequest(orderId: Int) extends Request
+
+    // TRADES
+
+    case class GetOpenTradesRequest(maxId: Option[Int] = None,
+                                    count: Option[Int] = None,
+                                    instrument: Option[String] = None,
+                                    ids: Option[List[Int]] = None) extends Request
+
+    case class GetTradeInformationRequest(tradeId: Int) extends Request
+
+    case class ModifyTradeRequest(id: Int, stopLoss: Option[Double] = None, takeProfit: Option[Double] = None, trailingStop: Option[Double] = None) extends Request
+
+    case class CloseTradeRequest(tradeId: Int) extends Request
 
   }
 
-  trait Response
+  sealed trait Response
 
   object Response {
-
-    case class CloseTradeResponse(id: Int, instrument: String, profit: Double, side: Side, price: Double, time: ZonedDateTime) extends Response
-
-    case class ModifyTradeResponse(id: Int, instrument: String, units: Int, side: Side, time: ZonedDateTime, price: Double, takeProfit: Option[Double], stopLoss: Option[Double], trailingStop: Option[Double], trailingAmount: Option[Double]) extends Response
-
-
-    case class Trade(id: Int, units: Int, side: Side, instrument: String, time: ZonedDateTime, price: Double, takeProfit: Double, stopLoss: Double, trailingStop: Double, trailingAmount: Double)
-
-    case class TradeResponse(trades: Seq[Trade]) extends Response
 
 
     case class ClosePositionResponse(ids: Seq[Int], instrument: String, totalUnits: Int, price: Double) extends Response
@@ -188,17 +184,37 @@ object RestConnector {
     case class GetOrdersResponse(orders: Seq[OrderResponse]) extends Response
 
     case class CreateOrderResponse(instrument: String, time: ZonedDateTime, price: Double, orderOpened: Option[OrderOpened], tradeOpened: Option[TradeOpened]) extends Response
-    
+
     case class CloseOrderResponse(id: Int, instrument: String, units: Int, side: Side, price: Double, time: ZonedDateTime) extends Response
+
+
+    case class TradeResponse(id: Int,
+                             units: Int,
+                             side: Side,
+                             instrument: String,
+                             time: ZonedDateTime,
+                             price: Double,
+                             takeProfit: Double,
+                             stopLoss: Double,
+                             trailingStop: Double,
+                             trailingAmount: Double) extends Response
+
+    case class GetOpenTradesResponse(trades: Seq[TradeResponse]) extends Response
+
+    case class CloseTradeResponse(id: Int,
+                                  price: Double,
+                                  instrument: String,
+                                  profit: Double,
+                                  side: Side,
+                                  time: ZonedDateTime) extends Response
 
     object OandaJsonProtocol extends DefaultJsonProtocol {
       implicit val closeOrderResponseFormat = jsonFormat6(CloseOrderResponse)
       implicit val orderOpenedFormat = jsonFormat9(OrderOpened)
       implicit val tradeOpenedFormat = jsonFormat6(TradeOpened)
       implicit val createOrderResponseFormat = jsonFormat5(CreateOrderResponse)
-      implicit val modifyTradeResponseFormat = jsonFormat10(ModifyTradeResponse)
-      implicit val tradeFmt = jsonFormat10(Trade)
-      implicit val tradeResponseFmt = jsonFormat1(TradeResponse)
+      implicit val tradeResponseFmt = jsonFormat10(TradeResponse)
+      implicit val getOpenTradesResponseFmt = jsonFormat1(GetOpenTradesResponse)
       implicit val orderResponseFormat = jsonFormat13(OrderResponse)
       implicit val getOrdersResponseFmt = jsonFormat1(GetOrdersResponse)
       implicit val midPointBasedCandleResponseFmt = jsonFormat3(CandleResponse[MidPointBasedCandle])
@@ -252,22 +268,9 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
   }
 
   override def receive = {
-    case req: ModifyTradeRequest =>
-      log.info("Modifying trade: {}", req)
-      val data = FormData(Map()
-        ++ req.takeProfit.map(tp => "takeProfit" -> decimalFormatter.format(tp))
-        ++ req.stopLoss.map(sl => "stopLoss" -> decimalFormatter.format(sl))
-        ++ req.trailingStop.map(ts => "trailingStop" -> decimalFormatter.format(ts)))
-      handleRequest(pipelineFuture[ModifyTradeResponse].flatMap(_(Patch(s"/v1/accounts/$accountId/trades/${req.id}", data))))
-    case req: GetTradesRequest =>
-      log.info("Getting open trades: {}", req)
-      handleRequest(pipelineFuture[TradeResponse].flatMap(_(Get(s"/v1/accounts/$accountId/trades?instrument=${req.instrument}&count=${req.count}"))))
     case req: ClosePositionRequest =>
       log.info("Closing position: {}", req)
       handleRequest(pipelineFuture[ClosePositionResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/positions/${req.instrument}"))))
-    case req: CloseTradeRequest =>
-      log.info("Closing trade: {}", req)
-      handleRequest(pipelineFuture[CloseTradeResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/trades/${req.tradeId}"))))
 
     case req: GetInstrumentsRequest =>
       log.info("Getting instruments: {}", req)
@@ -379,5 +382,33 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
     case req: CloseOrderRequest =>
       log.info("Closing order {}", req)
       handleRequest(pipelineFuture[CloseOrderResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/orders/${req.orderId}"))))
+
+    case req: GetOpenTradesRequest =>
+      log.info("Getting open trades: {}", req)
+      val uri = Uri(s"/v1/accounts/$accountId/trades").withQuery(
+        Query.asBodyData(
+          Seq(
+            req.maxId.map(maxId => ("maxId", maxId.toString)),
+            req.count.map(count => ("count", count.toString)),
+            req.instrument.map(instrument => ("instrument", instrument)),
+            req.ids.map(ids => ("ids", ids.mkString(",")))
+          ).flatten
+        )
+      )
+      handleRequest(pipelineFuture[GetOpenTradesResponse].flatMap(_(Get(uri))))
+    case req: GetTradeInformationRequest =>
+      log.info("Getting information for a trade: {}", req)
+      handleRequest(pipelineFuture[TradeResponse].flatMap(_(Get(s"/v1/accounts/$accountId/trades/${req.tradeId}"))))
+    case req: ModifyTradeRequest =>
+      log.info("Modifying trade: {}", req)
+      val data = FormData(
+        Map() ++ req.takeProfit.map(tp => "takeProfit" -> decimalFormatter.format(tp))
+          ++ req.stopLoss.map(sl => "stopLoss" -> decimalFormatter.format(sl))
+          ++ req.trailingStop.map(ts => "trailingStop" -> decimalFormatter.format(ts))
+      )
+      handleRequest(pipelineFuture[TradeResponse].flatMap(_(Patch(s"/v1/accounts/$accountId/trades/${req.id}", data))))
+    case req: CloseTradeRequest =>
+      log.info("Closing trade: {}", req)
+      handleRequest(pipelineFuture[CloseTradeResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/trades/${req.tradeId}"))))
   }
 }
