@@ -1,6 +1,11 @@
-import SonatypeKeys._
+import sbtrelease.ReleasePlugin.ReleaseKeys._
+import xerial.sbt.Sonatype.SonatypeKeys._
 
 sonatypeSettings
+
+releaseSettings
+
+publishArtifactsAction := PgpKeys.publishSigned.value
 
 organization := "com.msilb"
 
