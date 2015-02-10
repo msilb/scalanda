@@ -37,9 +37,6 @@ object RestConnector {
 
   object Request {
 
-
-    case class ClosePositionRequest(instrument: String) extends Request
-
     // RATES
 
     case class GetInstrumentsRequest(fields: Option[Seq[InstrumentField]] = None,
@@ -113,14 +110,19 @@ object RestConnector {
 
     case class CloseTradeRequest(tradeId: Int) extends Request
 
+    // POSITIONS
+
+    case object GetOpenPositionsRequest extends Request
+
+    case class GetPositionForInstrumentRequest(instrument: String) extends Request
+
+    case class ClosePositionRequest(instrument: String) extends Request
+
   }
 
   sealed trait Response
 
   object Response {
-
-
-    case class ClosePositionResponse(ids: Seq[Int], instrument: String, totalUnits: Int, price: Double) extends Response
 
     case class Instrument(instrument: String,
                           displayName: Option[String],
@@ -162,7 +164,6 @@ object RestConnector {
                                              marginRate: Double,
                                              accountCurrency: String) extends Response
 
-
     case class OrderOpened(id: Int, units: Int, side: Side, expiry: ZonedDateTime, upperBound: Double, lowerBound: Double, takeProfit: Double, stopLoss: Double, trailingStop: Double)
 
     case class TradeOpened(id: Int, units: Int, side: Side, takeProfit: Double, stopLoss: Double, trailingStop: Double)
@@ -187,7 +188,6 @@ object RestConnector {
 
     case class CloseOrderResponse(id: Int, instrument: String, units: Int, side: Side, price: Double, time: ZonedDateTime) extends Response
 
-
     case class TradeResponse(id: Int,
                              units: Int,
                              side: Side,
@@ -207,6 +207,12 @@ object RestConnector {
                                   profit: Double,
                                   side: Side,
                                   time: ZonedDateTime) extends Response
+
+    case class PositionResponse(instrument: String, units: Int, side: Side, avgPrice: Double) extends Response
+
+    case class GetOpenPositionsResponse(positions: Seq[PositionResponse]) extends Response
+
+    case class ClosePositionResponse(ids: Seq[Int], instrument: String, totalUnits: Int, price: Double) extends Response
 
     object OandaJsonProtocol extends DefaultJsonProtocol {
       implicit val closeOrderResponseFormat = jsonFormat6(CloseOrderResponse)
@@ -229,6 +235,8 @@ object RestConnector {
       implicit val getAccountsResponseFmt = jsonFormat1(GetAccountsResponse)
       implicit val createTestAccountResponseFmt = jsonFormat3(CreateTestAccountResponse)
       implicit val getAccountInformationResponseFmt = jsonFormat11(GetAccountInformationResponse)
+      implicit val positionResponseFmt = jsonFormat4(PositionResponse)
+      implicit val getOpenPositionsResponseFmt = jsonFormat1(GetOpenPositionsResponse)
     }
 
   }
@@ -268,9 +276,6 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
   }
 
   override def receive = {
-    case req: ClosePositionRequest =>
-      log.info("Closing position: {}", req)
-      handleRequest(pipelineFuture[ClosePositionResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/positions/${req.instrument}"))))
 
     case req: GetInstrumentsRequest =>
       log.info("Getting instruments: {}", req)
@@ -410,5 +415,15 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
     case req: CloseTradeRequest =>
       log.info("Closing trade: {}", req)
       handleRequest(pipelineFuture[CloseTradeResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/trades/${req.tradeId}"))))
+
+    case GetOpenPositionsRequest =>
+      log.info("Getting open positions")
+      handleRequest(pipelineFuture[GetOpenPositionsResponse].flatMap(_(Get(s"/v1/accounts/$accountId/positions"))))
+    case req: GetPositionForInstrumentRequest =>
+      log.info("Getting open positions for instrument: {}", req)
+      handleRequest(pipelineFuture[PositionResponse].flatMap(_(Get(s"/v1/accounts/$accountId/positions/${req.instrument}"))))
+    case req: ClosePositionRequest =>
+      log.info("Closing position: {}", req)
+      handleRequest(pipelineFuture[ClosePositionResponse].flatMap(_(Delete(s"/v1/accounts/$accountId/positions/${req.instrument}"))))
   }
 }

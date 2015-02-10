@@ -29,6 +29,19 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
 
   val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
 
+  override def beforeAll(): Unit = {
+    restConnector ! ClosePositionRequest("EUR_USD")
+    expectMsgType[ClosePositionResponse]
+    restConnector ! GetOrdersRequest(instrument = Some("EUR_USD"))
+    val orderIds = expectMsgPF() {
+      case GetOrdersResponse(orders) => orders.map(_.id)
+    }
+    orderIds.foreach { limitOrderId =>
+      restConnector ! CloseOrderRequest(limitOrderId)
+      expectMsgType[CloseOrderResponse]
+    }
+  }
+
   "RestConnector" should "get full list of tradable instruments" in {
     within(5.seconds) {
       restConnector ! GetInstrumentsRequest(
@@ -97,21 +110,6 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "close any existing position and order(s)" in {
-    within(10.seconds) {
-      restConnector ! ClosePositionRequest("EUR_USD")
-      expectMsgType[ClosePositionResponse]
-      restConnector ! GetOrdersRequest(instrument = Some("EUR_USD"))
-      val orderIds = expectMsgPF() {
-        case GetOrdersResponse(orders) => orders.map(_.id)
-      }
-      orderIds.foreach { limitOrderId =>
-        restConnector ! CloseOrderRequest(limitOrderId)
-        expectMsgType[CloseOrderResponse]
-      }
-    }
-  }
-
   it should "create new limit order, retrieve order information, modify and close order" in {
     within(10.seconds) {
       restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Limit, Some(ZonedDateTime.now().plusDays(1)), Some(1.8))
@@ -158,6 +156,31 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
       restConnector ! CloseTradeRequest(tradeId)
       expectMsgPF() {
         case CloseTradeResponse(id, _, "EUR_USD", _, Buy, _) => true
+      }
+    }
+  }
+
+  it should "create aggregated position, retrieve open position and close position" in {
+    within(10.seconds) {
+      restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
+      val tradeId1 = expectMsgPF() {
+        case CreateOrderResponse("EUR_USD", _, _, None, Some(tradeOpened)) => tradeOpened.id
+      }
+      restConnector ! CreateOrderRequest("EUR_USD", 20000, Buy, Market)
+      val tradeId2 = expectMsgPF() {
+        case CreateOrderResponse("EUR_USD", _, _, None, Some(tradeOpened)) => tradeOpened.id
+      }
+      restConnector ! GetOpenPositionsRequest
+      expectMsgPF() {
+        case GetOpenPositionsResponse(Seq(PositionResponse("EUR_USD", 30000, Buy, _))) => true
+      }
+      restConnector ! GetPositionForInstrumentRequest("EUR_USD")
+      expectMsgPF() {
+        case PositionResponse("EUR_USD", 30000, Buy, _) => true
+      }
+      restConnector ! ClosePositionRequest("EUR_USD")
+      expectMsgPF() {
+        case ClosePositionResponse(ids, "EUR_USD", 30000, _) if ids.contains(tradeId1) && ids.contains(tradeId2) => true
       }
     }
   }
