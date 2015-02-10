@@ -34,7 +34,7 @@ object AccountEventListener {
     case class Transaction(id: Int,
                            accountId: Int,
                            time: ZonedDateTime,
-                           `type`: String,
+                           typ: String,
                            instrument: Option[String],
                            side: Option[String],
                            units: Option[Int],
@@ -59,7 +59,30 @@ object AccountEventListener {
     object EventJsonProtocol extends DefaultJsonProtocol {
       implicit val tradeOpenedFormat = jsonFormat2(TradeOpened)
       implicit val tradeReducedFormat = jsonFormat4(TradeReduced)
-      implicit val transactionFormat = jsonFormat22(Transaction)
+      implicit val transactionFormat = jsonFormat(Transaction,
+        "id",
+        "accountId",
+        "time",
+        "type",
+        "instrument",
+        "side",
+        "units",
+        "price",
+        "lowerBound",
+        "upperBound",
+        "takeProfitPrice",
+        "stopLossPrice",
+        "trailingStopLossDistance",
+        "pl",
+        "interest",
+        "accountBalance",
+        "tradeId",
+        "orderId",
+        "expiry",
+        "reason",
+        "tradeOpened",
+        "tradeReduced"
+      )
       implicit val accountEventFormat = jsonFormat1(AccountEvent)
     }
 

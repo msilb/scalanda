@@ -74,7 +74,7 @@ object RestConnector {
     case class CreateOrderRequest(instrument: String,
                                   units: Int,
                                   side: Side,
-                                  `type`: OrderType,
+                                  typ: OrderType,
                                   expiry: Option[ZonedDateTime] = None,
                                   price: Option[Double] = None,
                                   lowerBound: Option[Double] = None,
@@ -172,7 +172,7 @@ object RestConnector {
                              instrument: String,
                              units: Int,
                              side: Side,
-                             `type`: OrderType,
+                             typ: OrderType,
                              time: ZonedDateTime,
                              price: Double,
                              takeProfit: Double,
@@ -221,7 +221,21 @@ object RestConnector {
       implicit val createOrderResponseFormat = jsonFormat5(CreateOrderResponse)
       implicit val tradeResponseFmt = jsonFormat10(TradeResponse)
       implicit val getOpenTradesResponseFmt = jsonFormat1(GetOpenTradesResponse)
-      implicit val orderResponseFormat = jsonFormat13(OrderResponse)
+      implicit val orderResponseFormat = jsonFormat(OrderResponse,
+        "id",
+        "instrument",
+        "units",
+        "side",
+        "type",
+        "time",
+        "price",
+        "takeProfit",
+        "stopLoss",
+        "expiry",
+        "upperBound",
+        "lowerBound",
+        "trailingStop"
+      )
       implicit val getOrdersResponseFmt = jsonFormat1(GetOrdersResponse)
       implicit val midPointBasedCandleResponseFmt = jsonFormat3(CandleResponse[MidPointBasedCandle])
       implicit val bidAskBasedCandleResponseFmt = jsonFormat3(CandleResponse[BidAskBasedCandle])
@@ -250,7 +264,7 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
 
   implicit val timeout = Timeout(5.seconds)
 
-  private def pipelineFuture[T <: Response](implicit unmarshaller: FromResponseUnmarshaller[T]): Future[HttpRequest => Future[T]] =
+  private[this] def pipelineFuture[T <: Response](implicit unmarshaller: FromResponseUnmarshaller[T]): Future[HttpRequest => Future[T]] =
     for {
       Http.HostConnectorInfo(connector, _) <-
       IO(Http) ? Http.HostConnectorSetup(
@@ -264,7 +278,7 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
       case None => sendReceive(connector) ~> unmarshal[T]
     }
 
-  private def handleRequest[T <: Response](f: Future[T]) = {
+  private[this] def handleRequest[T <: Response](f: Future[T]) = {
     val requester = sender()
     f onComplete {
       case Success(response) =>
@@ -358,7 +372,7 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
           "instrument" -> req.instrument,
           "units" -> req.units.toString,
           "side" -> req.side.toString,
-          "type" -> req.`type`.toString
+          "type" -> req.typ.toString
         ) ++ req.expiry.map(e => "expiry" -> dateTimeFormatter.format(e))
           ++ req.price.map("price" -> _.toString)
           ++ req.lowerBound.map("lowerBound" -> _.toString)
