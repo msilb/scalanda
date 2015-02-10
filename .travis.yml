@@ -11,3 +11,5 @@ env:
   - secure: D8NCwR3f+8b85Q6ti2W5gjvYdWGFTt0mfgvsttLDpXUT5NXIb9rOSDcyP2vjmEY0Ia8rNXZ8nge+tycwGzTAzufhJALbY5umLEa9YWQdlLyAbI+oPy413dWMVQm3gdvDNuzxtvHcb9GWae2bh4E7J6YRqgP3H8ja7VjWChQA15c=
 after_success:
 - '[[ $TRAVIS_BRANCH == "master" ]] && { sbt coveralls; sbt publish; };'
+notifications:
+  email: false
