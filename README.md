@@ -10,7 +10,7 @@ Scalanda is a light-weight Scala/Akka/Spray-based wrapper for Oanda's REST and S
 If you are using `sbt` just drop this dependency into your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.msilb" %% "scalanda" % "0.2.0"
+libraryDependencies += "com.msilb" %% "scalanda" % "0.3.0"
 ```
 
 # Usage
