@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/msilb/scalanda.svg?branch=master)](https://travis-ci.org/msilb/scalanda)
 [![Coverage Status](https://coveralls.io/repos/msilb/scalanda/badge.svg?branch=master)](https://coveralls.io/r/msilb/scalanda?branch=master)
+[![Codacy Badge](https://www.codacy.com/project/badge/2bb6da8abeee48b483a7d9ee8d88d65f)](https://www.codacy.com/public/me_7/scalanda)
 
 Scalanda is a light-weight Scala/Akka/Spray-based wrapper for Oanda's REST and Stream APIs, which supports completely asynchronous non-blocking communication with the API. If you are using (or planning to use) Oanda as a broker for your automated trading needs, this library might be of interest.
 
