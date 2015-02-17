@@ -8,10 +8,12 @@ import com.msilb.scalanda.common.Environment
 import com.msilb.scalanda.common.Environment.SandBox
 import com.msilb.scalanda.common.model.Candle.{BidAskBasedCandle, MidPointBasedCandle}
 import com.msilb.scalanda.common.model.CandleFormat.MidPoint
+import com.msilb.scalanda.common.model.Transaction.TransactionJsonProtocol._
 import com.msilb.scalanda.common.model._
 import com.msilb.scalanda.common.util.DateUtils._
 import com.msilb.scalanda.common.util.NumberUtils._
 import com.msilb.scalanda.restapi.Request._
+import com.msilb.scalanda.restapi.Response.ResponseJsonProtocol._
 import com.msilb.scalanda.restapi.Response._
 import spray.can.Http
 import spray.client.pipelining._
@@ -32,7 +34,6 @@ object RestConnector {
 
 class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: Int) extends Actor with ActorLogging {
 
-  import com.msilb.scalanda.restapi.Response.ResponseJsonProtocol._
   import context._
 
   implicit val timeout = Timeout(5.seconds)

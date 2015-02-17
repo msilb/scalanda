@@ -9,6 +9,7 @@ import com.msilb.scalanda.common.model.Granularity.M1
 import com.msilb.scalanda.common.model.InstrumentField
 import com.msilb.scalanda.common.model.OrderType.{Limit, Market}
 import com.msilb.scalanda.common.model.Side.Buy
+import com.msilb.scalanda.common.model.Transaction.MarketOrderCreate
 import com.msilb.scalanda.restapi.Request._
 import com.msilb.scalanda.restapi.Response._
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
@@ -187,9 +188,18 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
 
   it should "get transaction history" in {
     within(10.seconds) {
-      restConnector ! GetTransactionHistoryRequest
+      restConnector ! GetTransactionHistoryRequest(count = Some(20))
       expectMsgPF() {
-        case GetTransactionHistoryResponse(transactions) => transactions.foreach(println)
+        case GetTransactionHistoryResponse(transactions) => true
+      }
+    }
+  }
+
+  it should "get information on specific transaction" in {
+    within(10.seconds) {
+      restConnector ! GetTransactionInformationRequest(175524941)
+      expectMsgPF() {
+        case o: MarketOrderCreate if o.id == 175524941 => true
       }
     }
   }
