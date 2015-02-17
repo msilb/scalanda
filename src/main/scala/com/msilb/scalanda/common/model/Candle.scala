@@ -1,8 +1,8 @@
 package com.msilb.scalanda.common.model
 
 import java.time.ZonedDateTime
-import com.msilb.scalanda.common.util.DateUtils._
 
+import com.msilb.scalanda.common.util.DateUtils._
 import spray.json.DefaultJsonProtocol
 
 sealed trait Candle {
