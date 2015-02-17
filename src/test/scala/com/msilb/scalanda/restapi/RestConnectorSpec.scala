@@ -9,8 +9,8 @@ import com.msilb.scalanda.common.model.Granularity.M1
 import com.msilb.scalanda.common.model.InstrumentField
 import com.msilb.scalanda.common.model.OrderType.{Limit, Market}
 import com.msilb.scalanda.common.model.Side.Buy
-import com.msilb.scalanda.restapi.RestConnector.Request._
-import com.msilb.scalanda.restapi.RestConnector.Response._
+import com.msilb.scalanda.restapi.Request._
+import com.msilb.scalanda.restapi.Response._
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.duration._
@@ -181,6 +181,15 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
       restConnector ! ClosePositionRequest("EUR_USD")
       expectMsgPF() {
         case ClosePositionResponse(ids, "EUR_USD", 30000, _) if ids.contains(tradeId1) && ids.contains(tradeId2) => true
+      }
+    }
+  }
+
+  it should "get transaction history" in {
+    within(10.seconds) {
+      restConnector ! GetTransactionHistoryRequest
+      expectMsgPF() {
+        case GetTransactionHistoryResponse(transactions) => transactions.foreach(println)
       }
     }
   }
