@@ -57,6 +57,8 @@ class AccountEventListener(env: Environment = SandBox, authTokenOpt: Option[Stri
           case ("heartbeat", obj) =>
             val h = obj.convertTo[Heartbeat]
             log.debug("Received heartbeat: {}", h)
+          case (unknown, _) =>
+            log.warning("Unknown event received: {}", unknown)
         }
       }
     case other =>
