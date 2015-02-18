@@ -2,11 +2,12 @@ package com.msilb.scalanda.restapi
 
 import java.time.ZonedDateTime
 
-import com.msilb.scalanda.common.model.Candle.CandleJsonProtocol._
-import com.msilb.scalanda.common.model.Candle.{BidAskBasedCandle, MidPointBasedCandle}
 import com.msilb.scalanda.common.model.Transaction.TransactionJsonProtocol._
 import com.msilb.scalanda.common.model._
 import com.msilb.scalanda.common.util.DateUtils.DateJsonFormat
+import com.msilb.scalanda.restapi.model.Candle.CandleJsonProtocol._
+import com.msilb.scalanda.restapi.model.Candle.{BidAskBasedCandle, MidPointBasedCandle}
+import com.msilb.scalanda.restapi.model.{Candle, Granularity, OrderType}
 import spray.json.DefaultJsonProtocol
 
 trait Response

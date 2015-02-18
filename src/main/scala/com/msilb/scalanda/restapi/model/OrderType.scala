@@ -1,4 +1,4 @@
-package com.msilb.scalanda.common.model
+package com.msilb.scalanda.restapi.model
 
 import spray.json._
 

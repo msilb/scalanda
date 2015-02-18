@@ -3,6 +3,7 @@ package com.msilb.scalanda.restapi
 import java.time.ZonedDateTime
 
 import com.msilb.scalanda.common.model._
+import com.msilb.scalanda.restapi.model._
 
 sealed trait Request
 

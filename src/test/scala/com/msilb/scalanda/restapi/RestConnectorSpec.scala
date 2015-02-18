@@ -4,10 +4,10 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import com.msilb.scalanda.common.model.CandleFormat.BidAsk
-import com.msilb.scalanda.common.model.Granularity.M1
-import com.msilb.scalanda.common.model.InstrumentField
-import com.msilb.scalanda.common.model.OrderType.{Limit, Market}
+import com.msilb.scalanda.restapi.model.{Granularity, InstrumentField, OrderType, CandleFormat}
+import CandleFormat.BidAsk
+import Granularity.M1
+import OrderType.{Limit, Market}
 import com.msilb.scalanda.common.model.Side.Buy
 import com.msilb.scalanda.common.model.Transaction.MarketOrderCreate
 import com.msilb.scalanda.restapi.Request._
