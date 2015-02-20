@@ -64,6 +64,7 @@ class StreamingConnectorSpec(_system: ActorSystem) extends TestKit(_system) with
       streamingConnector ! RemoveListeners(Set(testActor))
       fishForMessage() {
         case s: Set[_] if s.isEmpty => true
+        case _ => false
       }
     }
   }
