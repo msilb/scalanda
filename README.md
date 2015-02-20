@@ -42,19 +42,33 @@ restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
 
 Once the request is completed `restConnector` will reply with an instance of `CreateOrderResponse` containing details of the successfully created trade.
 
-For a full list of supported `Request`s and `Response`s please look at the source code file [`RestConnector.scala`](src/main/scala/com/msilb/scalanda/restapi/RestConnector.scala).
+## Subscribing for Price and Event Streams Using the Stream API
 
-## Listening for Account Events Using the Stream API
-
-Create a new connector actor for the Stream API in the same way as you did for the REST API:
+Create a new connector actor for the Stream API and send `Connect` message to it:
 
 ```scala
-val accountEventListener = system.actorOf(AccountEventListener.props(Practice, Some(authTokenPractice), Map(testAccountd1 -> listenersForTestAccountId1, testAccountId2 -> listenersForTestAccountId2)))
+val streamingConnector = system.actorOf(StreamingConnector.props)
+streamingConnector ! Connect(Practice, Some(authTokenPractice))
 ```
 
-where
+then wait until `streamingConnector` responds with the `ConnectionEstablished` message. Register listeners that should be notified of price tick or event updates by sending
 
-* `testAccountId`<sub>i</sub> are the IDs of the accounts you want to listen for updates.
-* `listenersForTestAccountId`<sub>i</sub> are sequences of `ActorRef`s that should be notified of updates on account `testAccountId`<sub>i</sub>.
+```scala
+streamingConnector ! AddListeners(Set(listener1, listener2, listener3))
+```
 
-For a full list of supported `Transaction` events please look at the source code file [`AccountEventListener.scala`](src/main/scala/com/msilb/scalanda/streamapi/AccountEventListener.scala).
+to the `streamingConnector`.
+
+Finally, subscribe for the price stream with
+
+```scala
+streamingConnector ! StartRatesStreaming(accountId, instruments, sessionIdOpt)
+```
+
+or for the events stream with
+
+```scala
+streamingConnector ! StartEventsStreaming(accountIdsOpt)
+```
+
+For further information on request / response parameters see [Oanda Stream API specification](http://developer.oanda.com/rest-live/streaming).
