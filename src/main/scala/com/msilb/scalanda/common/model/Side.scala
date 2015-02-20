@@ -1,6 +1,6 @@
 package com.msilb.scalanda.common.model
 
-import spray.json._
+import spray.json.{JsString, JsValue, JsonFormat, deserializationError}
 
 sealed trait Side
 

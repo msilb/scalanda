@@ -9,7 +9,7 @@ import com.msilb.scalanda.common.Environment.SandBox
 import com.msilb.scalanda.restapi.model.{CandleFormat, Candle}
 import Candle.{BidAskBasedCandle, MidPointBasedCandle}
 import CandleFormat.MidPoint
-import com.msilb.scalanda.common.model.Transaction.TransactionJsonProtocol._
+import com.msilb.scalanda.common.model.TransactionJsonProtocol._
 import com.msilb.scalanda.common.model._
 import com.msilb.scalanda.common.util.DateUtils._
 import com.msilb.scalanda.common.util.NumberUtils._
