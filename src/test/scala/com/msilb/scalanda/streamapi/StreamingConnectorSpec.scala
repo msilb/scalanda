@@ -5,7 +5,6 @@ import akka.testkit.{ImplicitSender, TestKit}
 import com.msilb.scalanda.common.model.Side.Buy
 import com.msilb.scalanda.common.model.Transaction.MarketOrderCreate
 import com.msilb.scalanda.restapi.Request.{ClosePositionRequest, CreateOrderRequest}
-import com.msilb.scalanda.restapi.Response.{ClosePositionResponse, CreateOrderResponse}
 import com.msilb.scalanda.restapi.RestConnector
 import com.msilb.scalanda.restapi.model.OrderType.Market
 import com.msilb.scalanda.streamapi.StreamingConnector._
@@ -63,7 +62,9 @@ class StreamingConnectorSpec(_system: ActorSystem) extends TestKit(_system) with
   it should "de-register listeners" in {
     within(5.seconds) {
       streamingConnector ! RemoveListeners(Set(testActor))
-      expectMsg(Set.empty)
+      fishForMessage() {
+        case s: Set[_] if s.isEmpty => true
+      }
     }
   }
 }
