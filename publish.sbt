@@ -12,23 +12,19 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false}
 
+licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+
 pomExtra := {
   <url>http://msilb.com</url>
-    <licenses>
-      <license>
-        <name>Apache 2</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      </license>
-    </licenses>
-    <scm>
-      <connection>scm:git:https://github.com/msilb/scalanda.git</connection>
-      <url>https://github.com/msilb/scalanda</url>
-    </scm>
-    <developers>
-      <developer>
-        <id>msilb</id>
-        <name>Michael Silbermann</name>
-        <url>http://msilb.com</url>
-      </developer>
-    </developers>
+  <scm>
+    <connection>scm:git:https://github.com/msilb/scalanda.git</connection>
+    <url>https://github.com/msilb/scalanda</url>
+  </scm>
+  <developers>
+    <developer>
+      <id>msilb</id>
+      <name>Michael Silbermann</name>
+      <url>http://msilb.com</url>
+    </developer>
+  </developers>
 }
