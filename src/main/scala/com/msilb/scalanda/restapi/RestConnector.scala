@@ -90,7 +90,11 @@ class RestConnector(env: Environment, authTokenOpt: Option[String], accountId: I
       handleRequest(pipelineFuture[GetCurrentPricesResponse].flatMap(_(Get(uri))))
     case req: GetCandlesRequest =>
       log.info("Getting historical candles: {}", req)
-      val candlePipelineFuture: Future[HttpRequest => Future[CandleResponse[Candle]]] = if (req.candleFormat.contains(MidPoint)) pipelineFuture[CandleResponse[MidPointBasedCandle]] else pipelineFuture[CandleResponse[BidAskBasedCandle]]
+      val candlePipelineFuture: Future[HttpRequest => Future[CandleResponse[Candle]]] =
+        if (req.candleFormat.contains(MidPoint))
+          pipelineFuture[CandleResponse[MidPointBasedCandle]]
+        else
+          pipelineFuture[CandleResponse[BidAskBasedCandle]]
       val uri = Uri("/v1/candles").withQuery(
         Query.asBodyData(
           Seq(

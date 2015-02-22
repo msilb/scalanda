@@ -54,7 +54,15 @@ object Response {
                                            marginRate: Double,
                                            accountCurrency: String) extends Response
 
-  case class OrderOpened(id: Int, units: Int, side: Side, expiry: ZonedDateTime, upperBound: Double, lowerBound: Double, takeProfit: Double, stopLoss: Double, trailingStop: Double)
+  case class OrderOpened(id: Int,
+                         units: Int,
+                         side: Side,
+                         expiry: ZonedDateTime,
+                         upperBound: Double,
+                         lowerBound: Double,
+                         takeProfit: Double,
+                         stopLoss: Double,
+                         trailingStop: Double)
 
   case class TradeOpened(id: Int, units: Int, side: Side, takeProfit: Double, stopLoss: Double, trailingStop: Double)
 

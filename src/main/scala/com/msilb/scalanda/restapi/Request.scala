@@ -78,7 +78,10 @@ object Request {
 
   case class GetTradeInformationRequest(tradeId: Int) extends Request
 
-  case class ModifyTradeRequest(id: Int, stopLoss: Option[Double] = None, takeProfit: Option[Double] = None, trailingStop: Option[Double] = None) extends Request
+  case class ModifyTradeRequest(id: Int,
+                                stopLoss: Option[Double] = None,
+                                takeProfit: Option[Double] = None,
+                                trailingStop: Option[Double] = None) extends Request
 
   case class CloseTradeRequest(tradeId: Int) extends Request
 
