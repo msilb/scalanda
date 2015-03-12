@@ -19,7 +19,7 @@ description := "Scala/Akka wrapper for Oanda REST and Stream APIs"
 
 startYear := Some(2015)
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
