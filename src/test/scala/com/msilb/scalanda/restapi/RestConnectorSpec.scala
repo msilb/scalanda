@@ -4,31 +4,30 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import com.msilb.scalanda.restapi.model.{Granularity, InstrumentField, OrderType, CandleFormat}
-import CandleFormat.BidAsk
-import Granularity.M1
-import OrderType.{Limit, Market}
 import com.msilb.scalanda.common.model.Side.Buy
-import com.msilb.scalanda.common.model.Transaction.MarketOrderCreate
+import com.msilb.scalanda.common.model.Transaction
 import com.msilb.scalanda.restapi.Request._
 import com.msilb.scalanda.restapi.Response._
+import com.msilb.scalanda.restapi.model.CandleFormat.BidAsk
+import com.msilb.scalanda.restapi.model.Granularity.M1
+import com.msilb.scalanda.restapi.model.InstrumentField
+import com.msilb.scalanda.restapi.model.OrderType.{Limit, Market}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.duration._
 
 class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
 
+  val testAccountId = 4393633
+  val testUsername = "jachanie"
+  val testPassword = "OnMuItIl"
+  val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
+
   def this() = this(ActorSystem("test"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
   }
-
-  val testAccountId = 4393633
-  val testUsername = "jachanie"
-  val testPassword = "OnMuItIl"
-
-  val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
 
   override def beforeAll(): Unit = {
     restConnector ! ClosePositionRequest("EUR_USD")
@@ -186,20 +185,15 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "get transaction history" in {
+  it should "get transaction history and request detailed information on a specific transaction" in {
     within(10.seconds) {
       restConnector ! GetTransactionHistoryRequest(count = Some(20))
-      expectMsgPF() {
-        case GetTransactionHistoryResponse(transactions) => true
+      val transactionId = expectMsgPF() {
+        case GetTransactionHistoryResponse(transactions) => transactions.head.id
       }
-    }
-  }
-
-  it should "get information on specific transaction" in {
-    within(10.seconds) {
-      restConnector ! GetTransactionInformationRequest(175524941)
+      restConnector ! GetTransactionInformationRequest(transactionId)
       expectMsgPF() {
-        case o: MarketOrderCreate if o.id == 175524941 => true
+        case t: Transaction if t.id == transactionId => true
       }
     }
   }
