@@ -1,15 +1,4 @@
-import sbtrelease.ReleasePlugin.ReleaseKeys._
-import xerial.sbt.Sonatype.SonatypeKeys._
-
-sonatypeSettings
-
-releaseSettings
-
-publishArtifactsAction := PgpKeys.publishSigned.value
-
 organization := "com.msilb"
-
-profileName := "com.msilb"
 
 organizationHomepage := Some(new URL("http://msilb.com"))
 
