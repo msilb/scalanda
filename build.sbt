@@ -26,9 +26,9 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 resolvers += "spray repo" at "http://repo.spray.io"
 
 libraryDependencies ++= {
-  val akkaV = "2.3.9"
-  val sprayV = "1.3.2"
-  val sprayJsonV = "1.3.1"
+  val akkaV = "2.3.11"
+  val sprayV = "1.3.3"
+  val sprayJsonV = "1.3.2"
   val scalaTestV = "2.2.4"
   Seq(
     "io.spray" %% "spray-json" % sprayJsonV,
