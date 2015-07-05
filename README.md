@@ -40,7 +40,7 @@ After creating an instance of the REST connector you can use it from within your
 restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
 ```
 
-Once the request is completed `restConnector` will reply with an instance of `CreateOrderResponse` containing details of the successfully created trade.
+Once the request is completed `restConnector` will reply with an instance of `CreateOrderResponse` containing details of the successfully created trade. Check out the full list of possible [request](https://github.com/msilb/scalanda/blob/master/src/main/scala/com/msilb/scalanda/restapi/Request.scala) and [response](https://github.com/msilb/scalanda/blob/master/src/main/scala/com/msilb/scalanda/restapi/Response.scala) types.
 
 ## Subscribing for Price and Event Streams Using the Stream API
 
