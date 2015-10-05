@@ -159,7 +159,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "create aggregated position, retrieve open position and close position" in {
+  ignore should "create aggregated position, retrieve open position and close position" in {
     within(10.seconds) {
       restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
       val tradeId1 = expectMsgPF() {
