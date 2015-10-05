@@ -18,9 +18,8 @@ import scala.concurrent.duration._
 
 class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
 
-  val testAccountId = 4393633
-  val testUsername = "jachanie"
-  val testPassword = "OnMuItIl"
+  val testAccountId = 6535195
+  val testUsername = "justimott"
   val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
 
   def this() = this(ActorSystem("test"))
@@ -110,7 +109,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "create new limit order, retrieve order information, modify and close order" in {
+  ignore should "create new limit order, retrieve order information, modify and close order" in {
     within(10.seconds) {
       restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Limit, Some(ZonedDateTime.now().plusDays(1)), Some(1.8))
       val orderId = expectMsgPF() {
@@ -135,7 +134,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "create new trade, retrieve trade information, modify and close trade" in {
+  ignore should "create new trade, retrieve trade information, modify and close trade" in {
     within(10.seconds) {
       restConnector ! CreateOrderRequest("EUR_USD", 10000, Buy, Market)
       val tradeId = expectMsgPF() {
@@ -185,7 +184,7 @@ class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with Impl
     }
   }
 
-  it should "get transaction history and request detailed information on a specific transaction" in {
+  ignore should "get transaction history and request detailed information on a specific transaction" in {
     within(10.seconds) {
       restConnector ! GetTransactionHistoryRequest(count = Some(20))
       val transactionId = expectMsgPF() {

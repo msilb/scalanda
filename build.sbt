@@ -18,7 +18,7 @@ libraryDependencies ++= {
   val akkaV = "2.4.0"
   val sprayV = "1.3.3"
   val sprayJsonV = "1.3.2"
-  val scalaTestV = "2.2.5"
+  val scalaTestV = "2.2.4"
   Seq(
     "io.spray" %% "spray-json" % sprayJsonV,
     "io.spray" %% "spray-can" % sprayV,

@@ -21,7 +21,7 @@ class StreamingConnectorSpec(_system: ActorSystem) extends TestKit(_system) with
     TestKit.shutdownActorSystem(system)
   }
 
-  val testAccountId = 8164566
+  val testAccountId = 6535195
 
   val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
   val streamingConnector = system.actorOf(StreamingConnector.props)
