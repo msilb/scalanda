@@ -38,13 +38,13 @@ object Request {
 
   // ORDERS
 
-  case class GetOrdersRequest(maxId: Option[Int] = None,
+  case class GetOrdersRequest(maxId: Option[Long] = None,
                               count: Option[Int] = None,
                               instrument: Option[String] = None,
-                              ids: Option[List[Int]] = None) extends Request
+                              ids: Option[List[Long]] = None) extends Request
 
   case class CreateOrderRequest(instrument: String,
-                                units: Int,
+                                units: Long,
                                 side: Side,
                                 typ: OrderType,
                                 expiry: Option[ZonedDateTime] = None,
@@ -55,10 +55,10 @@ object Request {
                                 takeProfit: Option[Double] = None,
                                 trailingStop: Option[Double] = None) extends Request
 
-  case class GetOrderInformationRequest(orderId: Int) extends Request
+  case class GetOrderInformationRequest(orderId: Long) extends Request
 
-  case class ModifyOrderRequest(id: Int,
-                                units: Option[Int] = None,
+  case class ModifyOrderRequest(id: Long,
+                                units: Option[Long] = None,
                                 price: Option[Double] = None,
                                 expiry: Option[ZonedDateTime] = None,
                                 lowerBound: Option[Double] = None,
@@ -67,23 +67,23 @@ object Request {
                                 takeProfit: Option[Double] = None,
                                 trailingStop: Option[Double] = None) extends Request
 
-  case class CloseOrderRequest(orderId: Int) extends Request
+  case class CloseOrderRequest(orderId: Long) extends Request
 
   // TRADES
 
-  case class GetOpenTradesRequest(maxId: Option[Int] = None,
+  case class GetOpenTradesRequest(maxId: Option[Long] = None,
                                   count: Option[Int] = None,
                                   instrument: Option[String] = None,
-                                  ids: Option[List[Int]] = None) extends Request
+                                  ids: Option[List[Long]] = None) extends Request
 
-  case class GetTradeInformationRequest(tradeId: Int) extends Request
+  case class GetTradeInformationRequest(tradeId: Long) extends Request
 
-  case class ModifyTradeRequest(id: Int,
+  case class ModifyTradeRequest(id: Long,
                                 stopLoss: Option[Double] = None,
                                 takeProfit: Option[Double] = None,
                                 trailingStop: Option[Double] = None) extends Request
 
-  case class CloseTradeRequest(tradeId: Int) extends Request
+  case class CloseTradeRequest(tradeId: Long) extends Request
 
   // POSITIONS
 
@@ -95,12 +95,12 @@ object Request {
 
   // TRANSACTIONS
 
-  case class GetTransactionHistoryRequest(maxId: Option[Int] = None,
-                                          minId: Option[Int] = None,
+  case class GetTransactionHistoryRequest(maxId: Option[Long] = None,
+                                          minId: Option[Long] = None,
                                           count: Option[Int] = None,
                                           instrument: Option[String] = None,
-                                          ids: Option[List[Int]] = None) extends Request
+                                          ids: Option[List[Long]] = None) extends Request
 
-  case class GetTransactionInformationRequest(transactionId: Int) extends Request
+  case class GetTransactionInformationRequest(transactionId: Long) extends Request
 
 }

@@ -54,8 +54,8 @@ object Response {
                                            marginRate: Double,
                                            accountCurrency: String) extends Response
 
-  case class OrderOpened(id: Int,
-                         units: Int,
+  case class OrderOpened(id: Long,
+                         units: Long,
                          side: Side,
                          expiry: ZonedDateTime,
                          upperBound: Double,
@@ -64,11 +64,11 @@ object Response {
                          stopLoss: Double,
                          trailingStop: Double)
 
-  case class TradeOpened(id: Int, units: Int, side: Side, takeProfit: Double, stopLoss: Double, trailingStop: Double)
+  case class TradeOpened(id: Long, units: Long, side: Side, takeProfit: Double, stopLoss: Double, trailingStop: Double)
 
-  case class OrderResponse(id: Int,
+  case class OrderResponse(id: Long,
                            instrument: String,
-                           units: Int,
+                           units: Long,
                            side: Side,
                            `type`: OrderType,
                            time: ZonedDateTime,
@@ -84,10 +84,10 @@ object Response {
 
   case class CreateOrderResponse(instrument: String, time: ZonedDateTime, price: Double, orderOpened: Option[OrderOpened], tradeOpened: Option[TradeOpened]) extends Response
 
-  case class CloseOrderResponse(id: Int, instrument: String, units: Int, side: Side, price: Double, time: ZonedDateTime) extends Response
+  case class CloseOrderResponse(id: Long, instrument: String, units: Long, side: Side, price: Double, time: ZonedDateTime) extends Response
 
-  case class TradeResponse(id: Int,
-                           units: Int,
+  case class TradeResponse(id: Long,
+                           units: Long,
                            side: Side,
                            instrument: String,
                            time: ZonedDateTime,
@@ -99,18 +99,18 @@ object Response {
 
   case class GetOpenTradesResponse(trades: Seq[TradeResponse]) extends Response
 
-  case class CloseTradeResponse(id: Int,
+  case class CloseTradeResponse(id: Long,
                                 price: Double,
                                 instrument: String,
                                 profit: Double,
                                 side: Side,
                                 time: ZonedDateTime) extends Response
 
-  case class PositionResponse(instrument: String, units: Int, side: Side, avgPrice: Double) extends Response
+  case class PositionResponse(instrument: String, units: Long, side: Side, avgPrice: Double) extends Response
 
   case class GetOpenPositionsResponse(positions: Seq[PositionResponse]) extends Response
 
-  case class ClosePositionResponse(ids: Seq[Int], instrument: String, totalUnits: Int, price: Double) extends Response
+  case class ClosePositionResponse(ids: Seq[Long], instrument: String, totalUnits: Long, price: Double) extends Response
 
   case class GetTransactionHistoryResponse(transactions: Seq[Transaction]) extends Response
 

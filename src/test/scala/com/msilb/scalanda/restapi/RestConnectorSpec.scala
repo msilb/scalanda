@@ -3,7 +3,9 @@ package com.msilb.scalanda.restapi
 import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
+import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
+import akka.util.Timeout
 import com.msilb.scalanda.common.model.Side.Buy
 import com.msilb.scalanda.common.model.Transaction
 import com.msilb.scalanda.restapi.Request._
@@ -14,12 +16,18 @@ import com.msilb.scalanda.restapi.model.InstrumentField
 import com.msilb.scalanda.restapi.model.OrderType.{Limit, Market}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class RestConnectorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
 
-  val testAccountId = 6535195
-  val testUsername = "justimott"
+  implicit val timeout = Timeout(30.seconds)
+
+  val createTestAccountResponseFuture = (system.actorOf(RestConnector.props(accountId = 0)) ? CreateTestAccountRequest()).mapTo[CreateTestAccountResponse]
+  val createTestAccountResponse = Await.result(createTestAccountResponseFuture, timeout.duration)
+
+  val testAccountId = createTestAccountResponse.accountId
+  val testUsername = createTestAccountResponse.username
   val restConnector = system.actorOf(RestConnector.props(accountId = testAccountId))
 
   def this() = this(ActorSystem("test"))
