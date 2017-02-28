@@ -1,3 +1,5 @@
+### Note: this is Scala wrapper for [Oanda REST API *v1*](http://developer.oanda.com/rest-live/introduction). If you are looking for a Scala wrapper for the newer [Oanda REST API *v2*](http://developer.oanda.com/rest-live-v20/introduction), please have a look at the [scalanda-v20](https://github.com/msilb/scalanda-v20) project.
+
 # scalanda
 
 [![Build Status](https://travis-ci.org/msilb/scalanda.svg?branch=master)](https://travis-ci.org/msilb/scalanda)
